@@ -18,6 +18,7 @@ class ProductSerializer(serializers.ModelSerializer):
     return
 
 class OrderItemSerializer(serializers.ModelSerializer):
+  product = ProductSerializer()
   class Meta:
     model = OrderItem
     fields = (
@@ -29,6 +30,13 @@ class OrderItemSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
   #  means we are returning the items not on read requests
   items = OrderItemSerializer(many=True, read_only=True)
+  total_price = serializers.SerializerMethodField()
+
+  def get_total_price(self, obj):
+    order_items = obj.items.all()
+    print("order_items", order_items)
+    return sum(order_item.item_subtotal for order_item in order_items)
+
   class Meta:
     model = Order
     fields = (
@@ -36,7 +44,8 @@ class OrderSerializer(serializers.ModelSerializer):
       'created_at',
       'user',
       'status',
-      'items'
+      'items',
+      'total_price'
     )
 
 
