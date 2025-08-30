@@ -7,43 +7,29 @@ from rest_framework.decorators import api_view
 from rest_framework import generics
 
 
-# @api_view(['GET'])
-# def product_list(request):
-#   # fetch all the products
-#   products = Product.objects.all()
-#   # create a serialiser ,many=True bcx many objects
-#   serializer = ProductSerializer(products, many=True)
-#   return Response(serializer.data)
-
 
 # Create a class based view
 class ProductListAPIView(generics.ListAPIView):
   queryset = Product.objects.filter(stock__gt=0)
   serializer_class = ProductSerializer
-  # permission_classes = []
-
-# @api_view(['GET'])
-# def product_detail(request, pk):
-#   # fetch all the products
-#   product = get_object_or_404(Product, pk=pk)
-#   # create a serialiser ,many=True bcx many objects
-#   serializer = ProductSerializer(product)
-#   return Response(serializer.data)
 
 class ProductDetailAPIView(generics.RetrieveAPIView):
   queryset = Product.objects.all()
   serializer_class = ProductSerializer
   lookup_url_kwarg = 'product_id'
 
-# @api_view(['Get'])
-# def order_list(request):
-#   orders = Order.objects.prefetch_related('items__product').all()
-#   serializer = OrderSerializer(orders, many=True)
-#   return Response(serializer.data)
-
 class OrderListAPIView(generics.ListAPIView):
   queryset = Order.objects.prefetch_related('items__product')
   serializer_class = OrderSerializer
+
+class UserOrderListAPIView(generics.ListAPIView):
+  queryset = Order.objects.prefetch_related('items__product')
+  serializer_class = OrderSerializer
+
+  def get_queryset(self):
+    user = self.request.user
+    qs = super().get_queryset()
+    return qs.filter(user=self.request.user)
 
 @api_view(['GET'])
 def product_info(request):
