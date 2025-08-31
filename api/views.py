@@ -63,15 +63,13 @@ class OrderViewSet(viewsets.ModelViewSet):
   filterset_class = OrderFilter
   filterset_backends = [DjangoFilterBackend]
 
-  @action(
-    detail=False,
-    methods=["get"],
-    url_path="user-orders",
-  )
-  def user_orders(self, request):
-    orders = self.get_queryset().filter(user=request.user)
-    serializer = OrderSerializer(orders, many=True)
-    return Response(serializer.data)
+  def get_queryset(self):
+    qs = super().get_queryset()
+    if not self.request.user.is_staff:
+      qs  = qs.filter(user=self.request.user)
+    return qs
+
+
 
 # class OrderListAPIView(generics.ListAPIView):
 #   queryset = Order.objects.prefetch_related('items__product')
