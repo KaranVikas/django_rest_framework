@@ -3,10 +3,10 @@ from django.shortcuts import get_object_or_404
 from api.serializers import ProductSerializer, OrderSerializer, ProductInfoSerializer
 from api.models import Product, Order, OrderItem
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, IsAdminUser , AllowAny
 from rest_framework.views import APIView
+from rest_framework import viewsets
 from api.filters import ProductFilter, InStockFilterBackend
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
@@ -26,11 +26,6 @@ class ProductListCreateAPIView(generics.ListCreateAPIView):
     'stock',
   ]
   search_fields = ['=name', 'description']
-  # pagination_class = PageNumberPagination
-  # pagination_class.page_size = 2
-  # pagination_class.page_query_param = 'pagenum'
-  # pagination_class.page_size_query_param = 'size'
-  # pagination_class.max_page_size = 4
   pagination_class = LimitOffsetPagination
 
   def get_permissions(self):
@@ -60,30 +55,25 @@ class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
       self.permission_classes = [IsAdminUser]
     return super().get_permissions()
 
-
-class OrderListAPIView(generics.ListAPIView):
+class OrderViewSet(viewsets.ModelViewSet):
   queryset = Order.objects.prefetch_related('items__product')
   serializer_class = OrderSerializer
+  permission_classes = [AllowAny]
+  pagination_class = None
 
-class UserOrderListAPIView(generics.ListAPIView):
-  queryset = Order.objects.prefetch_related('items__product')
-  serializer_class = OrderSerializer
-  permission_classes = [IsAuthenticated]
+# class OrderListAPIView(generics.ListAPIView):
+#   queryset = Order.objects.prefetch_related('items__product')
+#   serializer_class = OrderSerializer
+#
+# class UserOrderListAPIView(generics.ListAPIView):
+#   queryset = Order.objects.prefetch_related('items__product')
+#   serializer_class = OrderSerializer
+#   permission_classes = [IsAuthenticated]
 
-  def get_queryset(self):
-    user = self.request.user
-    qs = super().get_queryset()
-    return qs.filter(user=self.request.user)
-
-# @api_view(['GET'])
-# def product_info(request):
-#   products = Product.objects.all()
-#   serializer = ProductInfoSerializer({
-#     'products': products,
-#     'count': len(products),
-#     'max_price': products.aggregate(max_price=Max('price'))['max_price']
-#   })
-#   return Response(serializer.data)
+  # def get_queryset(self):
+  #   user = self.request.user
+  #   qs = super().get_queryset()
+  #   return qs.filter(user=self.request.user)
 
 class ProductInfoAPIView(APIView):
   def get(self,request):
