@@ -1,5 +1,10 @@
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 from django.urls import path
 from . import views
+
 
 urlpatterns = [
     path('products/', views.ProductListCreateAPIView.as_view()),
@@ -8,5 +13,6 @@ urlpatterns = [
     path('products/info/', views.ProductInfoAPIView.as_view()),
     path('orders/', views.OrderListAPIView.as_view()),
     path('user-orders/', views.UserOrderListAPIView.as_view(), name='user-orders'),
+
 
 ]
