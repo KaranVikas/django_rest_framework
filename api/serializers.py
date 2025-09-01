@@ -30,6 +30,36 @@ class OrderItemSerializer(serializers.ModelSerializer):
       'item_subtotal',
     )
 
+class OrderCreateSerializer(serializers.ModelSerializer):
+  class OrderItemCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+      model = OrderItem
+      fields = (
+        'product',
+        'quantity',
+      )
+  items = OrderItemCreateSerializer(many=True)
+  user = serializers.HiddenField(
+    default=serializers.CurrentUserDefault()
+  )
+
+  def create(self, validated_data):
+    orderitem_data = validated_data.pop('items')
+    order = Order.objects.create(**validated_data)
+
+    for item in orderitem_data:
+      OrderItem.objects.create(order=order, **item)
+
+    return order
+
+  class Meta:
+    model = Order
+    fields = (
+      'user',
+      'status',
+      'items',
+    )
+
 class OrderSerializer(serializers.ModelSerializer):
   #  means we are returning the items not on read requests
   order_id = serializers.UUIDField(read_only=True)
